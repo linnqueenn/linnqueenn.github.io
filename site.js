@@ -67,7 +67,7 @@ function renderHome() {
   setupPortraitArrival(setupHomeScramble());
   setupAboutScreen();
   setupMotion();
-  const loadCrystal = () => import('./crystal.js?v=20261128-tablet-fit').catch(error => console.warn('3D crystal unavailable', error));
+  const loadCrystal = () => import('./crystal.js?v=20261128-first-scroll').catch(error => console.warn('3D crystal unavailable', error));
   if ('requestIdleCallback' in window) requestIdleCallback(loadCrystal, {timeout: 1400});
   else setTimeout(loadCrystal, 500);
 }

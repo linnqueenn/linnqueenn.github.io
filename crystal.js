@@ -187,7 +187,17 @@ function setupCrystalJourney(host, canvas) {
   const invalidate = () => { dirtyUntil = performance.now() + 900; };
   addEventListener('scroll', invalidate, {passive: true});
   addEventListener('resize', invalidate);
-  tabs?.addEventListener('click', () => { workPinned = true; restoreWork = false; invalidate(); });
+  tabs?.addEventListener('click', event => {
+    if (!event.target.closest('[data-work-tab]')) return;
+    workPinned = true;
+    restoreWork = false;
+    invalidate();
+  });
+  // Fonts and initially lazy content can still move the stops after startup.
+  const layoutObserver = new ResizeObserver(invalidate);
+  [document.querySelector('#app'), tabs, ...about, serviceSection, process, pricing, contacts]
+    .forEach(element => { if (element) layoutObserver.observe(element); });
+  document.fonts.ready.then(invalidate);
   const serviceObserver = new MutationObserver(invalidate);
   services.forEach(row => serviceObserver.observe(row, {attributes: true, attributeFilter: ['class']}));
   const clamp = value => Math.max(0, Math.min(1, value));
@@ -229,7 +239,7 @@ function setupCrystalJourney(host, canvas) {
     let key = host, spinning = true, continuous = false;
     const tabRect = box(tabGem);
     const tabEnd = Math.max(1, box(tabs).top + scrollY - innerHeight * .56);
-    if (scrollY <= 1) workPinned = false;
+    if (scrollY <= 1 || (!mobile && passed(about[0]))) workPinned = false;
     if (workPinned) {
       target = point(tabGem, tabRect.height, 'inside');
       key = mobile ? tabs : tabGem.parentElement;
@@ -291,8 +301,8 @@ function setupCrystalJourney(host, canvas) {
         started = now - (mobile ? 620 : 400);
         settled = true;
         appearing = false;
-        restoreWork = false;
       }
+      restoreWork = false;
     }
     target.x = Math.max(18, Math.min(innerWidth - 24, target.x));
     if (continuous && attachedTo) {

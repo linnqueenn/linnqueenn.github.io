@@ -5,9 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Лина Ханнанова — UX/UI, веб- и графический дизайнер.">
 <title>linqueenn — Лина Ханнанова</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="style.css">
 <link rel="preload" href="assets/home/ubuntu-sans-mono.ttf" as="font" type="font/ttf" crossorigin>
+<script>
+{
+  const params = new URLSearchParams(location.search);
+  const portrait = params.get('portrait');
+  if (!params.get('case') && !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      (!portrait || portrait === '6221' || portrait === 'frames')) {
+    const preload = (href, as) => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = as;
+      link.href = href;
+      if (as === 'fetch') link.crossOrigin = 'anonymous';
+      link.fetchPriority = 'low';
+      document.head.append(link);
+    };
+    preload('assets/home/portrait.png', 'image');
+    const usesFrames = portrait === 'frames' || /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (usesFrames) {
+      preload('assets/home/portrait-6221.json', 'fetch');
+      for (let index = 0; index < 7; index++) preload('assets/home/portrait-6221-' + index + '.webp', 'image');
+    } else preload('assets/home/portrait-6221.webm', 'fetch');
+  }
+}
+</script>
 <link rel="stylesheet" href="home.css?v=20261128-portrait-home">
 <link rel="stylesheet" href="work.css?v=20261127-graphic-previews">
 <link rel="stylesheet" href="about.css?v=20261127-desktop-copy-break">
@@ -30,7 +55,7 @@
 <script src="remaining-content.js?v=20261128-localized-prices" defer></script>
 <script src="service-collages.js?v=20261128-tablet-bilingual" defer></script>
 <script src="remaining.js?v=20261128-localized-prices" defer></script>
-<script src="site.js?v=20261128-release" defer></script>
+<script src="site.js?v=20261128-crystal-scroll" defer></script>
 <script src="analytics.js?v=20261127" defer></script>
 <script type="importmap">{"imports":{"three":"./assets/vendor/three/three.module.js"}}</script>
 
