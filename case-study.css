@@ -42,6 +42,35 @@ body.case-page { background: var(--site-background); color: #282828; font-family
 .case-metrics dt { font-size: var(--case-metric-size); font-weight: var(--case-weight-emphasis); line-height: var(--type-leading-title); white-space: nowrap; }
 .case-metrics dd { margin: 10px 0 0; font-size: var(--case-caption-size); }
 .case-picture img { width: 100%; height: auto; }
+.case-picture-zoom { display: block; padding: 0; border: 0; background: none; }
+[data-case-image] { cursor: zoom-in; }
+.case-picture > .case-picture-zoom { width: 100%; }
+html:has(.case-lightbox[open]) { overflow: hidden; }
+.case-lightbox {
+  position: fixed;
+  width: min(1100px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 48px 12px 12px;
+  border: 1px solid #777;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--site-background);
+  color: #282828;
+}
+.case-lightbox::backdrop { background: #191a17b8; }
+.case-lightbox figure { max-height: calc(100dvh - 86px); overflow: auto; overscroll-behavior: contain; }
+.case-lightbox img { display: block; width: auto; height: auto; max-width: 100%; margin-inline: auto; }
+.case-lightbox figcaption { margin: 12px 0 4px; text-align: center; font-size: var(--case-caption-size); }
+.case-lightbox-close {
+  position: absolute;
+  inset: 2px 4px auto auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: var(--case-heading-size)/1 var(--type-font);
+}
 .case-picture figcaption { font-size: var(--case-caption-size); margin-bottom: 12px; font-weight: var(--case-weight-emphasis); }
 .case-live { font-weight: var(--case-weight-emphasis); margin-top: 20px; font-size: var(--case-caption-size); overflow-wrap: anywhere; }
 .case-chapter { padding-top: 72px; }

@@ -1,3 +1,9 @@
+const caseDeviceLabel = device => device === 'desktop' ? t('Десктоп', 'Desktop') : t('Мобильная версия', 'Mobile version');
+
+function caseImageButton(image, src, className = 'case-picture-zoom') {
+  return `<button type="button" class="${className}" data-case-image="${src}" aria-haspopup="dialog">${image}</button>`;
+}
+
 // Shared presentation for the web / UX case studies. Content stays separate.
 function caseStudyPage(data) {
   const scramble = text => `<span class="home-scramble" data-scramble>${text}</span>`;
@@ -18,13 +24,13 @@ function caseStudyPage(data) {
       ? ` srcset="assets/cases/${data.id}/${name}-preview.webp ${previewWidth}w, ${src} ${width}w" sizes="${sizes}"`
       : '';
     const img = `<img src="${src}"${preview} alt="${alt}" width="${width}" height="${height}" loading="${className === 'case-cover' ? 'eager' : 'lazy'}" fetchpriority="${className === 'case-cover' ? 'high' : 'low'}" decoding="async">`;
-    return `<figure class="case-picture ${className}" data-media="${name}">${label ? `<figcaption>${nbsp(label)}</figcaption>` : ''}${data.zoom ? `<a href="${src}" target="_blank" rel="noopener" aria-label="${t("Открыть изображение в полном размере: ", "Open full-size image: ")}${alt}">${img}</a>` : img}</figure>`;
+    return `<figure class="case-picture ${className}" data-media="${name}">${label ? `<figcaption>${nbsp(label)}</figcaption>` : ''}${caseImageButton(img, src)}</figure>`;
   };
   const compare = (items, className = '') => `<div class="case-comparison${items.some(item => item[0] === '13_old_form') ? ' case-comparison-form' : ''}${className ? ` ${className}` : ''}">${items.map(item => picture(...item)).join('')}</div>`;
   const visualSteps = ({id, steps}) => `<div class="case-visual-steps" id="${id}">
     <div class="case-visual-versions" role="group" aria-label="${t("Версия экранов", "Screen version")}">
-      <label><input type="radio" name="${id}-view" value="phone" checked>${t("Телефон", "Mobile")}</label>
-      <label><input type="radio" name="${id}-view" value="desktop">${t("Десктоп", "Desktop")}</label>
+      <label><input type="radio" name="${id}-view" value="desktop">${caseDeviceLabel('desktop')}</label>
+      <label><input type="radio" name="${id}-view" value="phone" checked>${caseDeviceLabel('mobile')}</label>
     </div>
     <ol class="case-visual-step-list" role="list">${steps.map(([title, desktop, phone]) => `<li>
       <h4>${nbsp(title)}</h4>
@@ -50,16 +56,16 @@ function caseStudyPage(data) {
         loading="${label ? 'lazy' : 'eager'}" decoding="async" alt=""></div>` : video}</figure>`;
   };
   const imageRails = ({id, rows}) => `<div class="case-image-rails" id="${id}">
-    ${rows.map(([device, label, images, scrollable = true]) => `<div class="case-image-rail-row" data-rail-row="${device}">
+    ${rows.map(([device, images]) => `<div class="case-image-rail-row" data-rail-row="${device}">
       <div class="case-image-rail-header">
-        <h4 id="${id}-${device}">${nbsp(label)}</h4>
-        ${scrollable ? `<div class="case-image-rail-nav" role="group" aria-label="${t("Листать экраны: ", "Browse screens: ")}${label}">
+        <h4 id="${id}-${device}">${caseDeviceLabel(device)}</h4>
+        <div class="case-image-rail-nav" role="group" aria-labelledby="${id}-${device}">
           <button type="button" data-rail-step="-1" aria-label="${t("Предыдущий экран", "Previous screen")}" aria-controls="${id}-${device}-track" disabled>←</button>
           <button type="button" data-rail-step="1" aria-label="${t("Следующий экран", "Next screen")}" aria-controls="${id}-${device}-track">→</button>
-        </div>` : ''}
+        </div>
       </div>
-      <div class="${scrollable ? 'case-image-rail' : 'case-image-grid'}" id="${id}-${device}-track" data-rail-device="${device}"
-        role="region"${scrollable ? ' tabindex="0"' : ''} aria-labelledby="${id}-${device}">
+      <div class="case-image-rail" id="${id}-${device}-track" data-rail-device="${device}"
+        role="region" tabindex="0" aria-labelledby="${id}-${device}">
         ${images.map(item => picture(...item)).join('')}
       </div>
     </div>`).join('')}
@@ -92,6 +98,7 @@ function caseStudyPage(data) {
         ${block.palette ? `<ul class="case-palette" aria-label="${t("Палитра проекта", "Project palette")}">${block.palette.map(([hex, label]) => `<li><span style="--swatch:${hex}" aria-hidden="true"></span>${label} · ${hex}</li>`).join('')}</ul>` : ''}
         ${block.visuals ? `<div class="case-media-group ${block.visualLayout || ''}">${block.visuals.map(visual).join('')}</div>` : ''}
         ${block.imageRails ? imageRails(block.imageRails) : ''}
+        ${block.link ? `<a class="case-live" href="${block.link.url}" target="_blank" rel="noopener noreferrer">${nbsp(block.link.label)} ↗</a>` : ''}
         ${block.kind === 'showcase' ? `<div class="case-interface">${picture('09_final', t("Финальные экраны сайта Mama Roma на компьютере и телефонах", "Final Mama Roma screens on desktop and mobile"))}<figure class="case-video"><video loop playsinline muted preload="none" width="3840" height="2034" poster="assets/cases/${data.id}/10_mobile.jpg" aria-label="${t("Демонстрация мобильной версии сайта Mama Roma", "Walkthrough of the Mama Roma mobile site")}"><source src="assets/cases/${data.id}/10_mobile.mp4" type="video/mp4">${t("Ваш браузер не поддерживает видео.", "Your browser does not support this video.")} <a href="assets/cases/${data.id}/10_mobile.mp4">${t("Открыть видео", "Open video")}</a></video></figure></div>` : ''}
       </div>`; }).join('')}
     </section>`).join('')}
@@ -123,6 +130,7 @@ function setupCasePage() {
   const jobs = createScrambleJobs(document.querySelector('.case-introduction') || app);
   document.fonts.ready.then(() => jobs.forEach((play, index) => play(index * 70)));
   app.querySelectorAll('.case-image-rail-row:has(.case-image-rail)').forEach(setupCaseImageRail);
+  setupCaseLightbox(app.querySelector('.case-study'));
   const videosWithPosters = app.querySelectorAll('video[data-case-poster]');
   if (videosWithPosters.length) {
     const showPoster = video => { video.poster = video.dataset.casePoster; };
@@ -155,6 +163,35 @@ function setupCasePage() {
     motion.addEventListener('change', sync);
     document.addEventListener('visibilitychange', sync);
   }
+}
+
+function setupCaseLightbox(root) {
+  root.insertAdjacentHTML('beforeend', `<dialog class="case-lightbox" aria-label="${t('Просмотр изображения', 'Image viewer')}">
+    <button type="button" class="case-lightbox-close" autofocus aria-label="${t('Закрыть изображение', 'Close image')}">×</button>
+    <figure><img alt=""><figcaption></figcaption></figure>
+  </dialog>`);
+  const dialog = root.querySelector('.case-lightbox');
+  const closeButton = dialog.querySelector('button');
+  const figure = dialog.querySelector('figure');
+  const image = figure.querySelector('img');
+  const caption = figure.querySelector('figcaption');
+  let trigger;
+
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-case-image]');
+    if (!button) return;
+    trigger = button;
+    image.alt = caption.textContent = button.querySelector('img').alt;
+    image.src = button.dataset.caseImage;
+    dialog.showModal();
+    figure.scrollTop = 0;
+  });
+  closeButton.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('close', () => {
+    image.removeAttribute('src');
+    trigger?.focus({preventScroll: true});
+  });
 }
 
 function setupCaseImageRail(row) {

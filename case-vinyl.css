@@ -1,6 +1,5 @@
 /* Vinyl uses the shared case template and pairs desktop and phone screens. */
 [data-case="vinyl"] .case-cover { margin-top: 32px; }
-[data-case="vinyl"] .case-picture > a { display: block; cursor: zoom-in; }
 [data-case="vinyl"] .case-visual-steps { margin-top: 32px; scroll-margin-top: 90px; }
 [data-case="vinyl"] .case-visual-versions { display: none; }
 [data-case="vinyl"] .case-visual-step-list { display: grid; gap: 40px; margin: 0; padding: 0; list-style: none; }
@@ -17,7 +16,7 @@
 }
 [data-case="vinyl"] .case-visual-step-pair img { display: block; }
 [data-case="vinyl"] .case-visual-phone { contain: size; min-width: 0; }
-[data-case="vinyl"] .case-visual-phone > a { height: 100%; width: fit-content; max-width: 100%; margin-inline: auto; }
+[data-case="vinyl"] .case-visual-phone > .case-picture-zoom { height: 100%; width: fit-content; max-width: 100%; margin-inline: auto; }
 [data-case="vinyl"] .case-visual-phone img { height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: top center; }
 [data-case="vinyl"] .vinyl-catalog-pair {
   grid-template-columns: minmax(0, 3.5fr) minmax(0, 1fr);
@@ -41,7 +40,7 @@
   [data-case="vinyl"] .case-visual-step-list { gap: 28px; }
   [data-case="vinyl"] .case-visual-steps .case-visual-step-pair { display: block; }
   [data-case="vinyl"] .case-visual-steps .case-visual-phone { contain: none; }
-  [data-case="vinyl"] .case-visual-steps .case-visual-phone > a { height: auto; }
+  [data-case="vinyl"] .case-visual-steps .case-visual-phone > .case-picture-zoom { height: auto; }
   [data-case="vinyl"] .case-visual-steps .case-visual-phone img { height: auto; max-height: min(62svh, 500px); }
   [data-case="vinyl"] .vinyl-catalog-pair { gap: 12px; }
   [data-case="vinyl"] .case-visual-steps:has([value="phone"]:checked) .case-visual-desktop,

@@ -40,6 +40,7 @@
 .zen-case .zen-product-artifact { font-family: Inter, 'Helvetica Neue', Arial, sans-serif; margin: 32px 0 48px; min-width: 0; }
 .zen-case .zen-product-artifact h3, .zen-case .zen-product-artifact h4 { font-family: inherit; text-transform: none; }
 .zen-case .hero-visual { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+.zen-case .zen-cover-mockup { align-self: start; }
 .zen-case .zen-cover-mockup img { display: block; width: var(--mockup-width, 94%); height: auto; margin: var(--mockup-top, 21%) auto 0; }
 /* Match the device bodies across artwork with different annotation margins. */
 .zen-case .zen-cover-chats { --mockup-width: 91%; --mockup-top: 23%; }
@@ -47,7 +48,8 @@
 .zen-case .zen-cover-ads { --mockup-width: 87%; }
 .zen-case .zen-cover-ads img { translate: -4%; }
 .zen-case .zen-cover-stories { --mockup-top: 6%; }
-.zen-case .zen-persona-photo { width: 140px; height: auto; border-radius: 12px; margin-bottom: 24px; }
+.zen-case .zen-persona-photo { width: 140px; height: auto; margin-bottom: 24px; }
+.zen-case .zen-persona-photo img { border-radius: 12px; }
 .zen-case .persona-id { margin-bottom: 12px; }
 .zen-case .persona-block h4 { line-height: var(--type-leading-title); }
 .zen-case .mood-card { margin: 0; padding: 24px; }
@@ -93,19 +95,13 @@
 .zen-case .zen-results > figure { min-width: 0; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
 .zen-case .zen-solution figcaption,
 .zen-case .zen-results figcaption { font-family: var(--type-font); font-size: var(--case-caption-size); text-align: center; }
-.zen-case .zen-lightbox { width: min(620px, calc(100vw - 32px)); max-height: calc(100svh - 32px); padding: 52px 20px 20px; border: 1px solid #777; border-radius: 5px; color: #282828; background: var(--site-background); }
-.zen-case .zen-lightbox::backdrop { background: #191a17b8; }
-.zen-case .zen-lightbox figure { margin: 0; }
-.zen-case .zen-lightbox img { display: block; max-width: 100%; max-height: calc(100svh - 160px); width: auto; height: auto; margin: auto; object-fit: contain; }
-.zen-case .zen-lightbox figcaption { text-align: center; margin-top: 16px; font-size: var(--case-caption-size); }
-.zen-case .zen-lightbox-close { position: absolute; top: 4px; right: 4px; min-width: 44px; min-height: 44px; border: 0; background: transparent; font-size: var(--case-subheading-size); }
 @media (max-width: 1100px) {
  .zen-case .zen-facts { grid-template-columns: minmax(0, 1fr) minmax(max-content, 1fr); }
  .zen-case .zen-hypotheses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
  .zen-case .persona-card { grid-template-columns: 1fr; }
  .zen-case .persona-lead { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px 24px; align-items: start; }
  .zen-case .zen-persona-photo { grid-column: 1; grid-row: 1 / span 5; width: 100%; margin: 0; }
- .zen-case .persona-lead > :not(img) { grid-column: 2; margin: 0; }
+ .zen-case .persona-lead > :not(.zen-persona-photo) { grid-column: 2; margin: 0; }
  .zen-case .persona-quote { padding-top: 12px; }
  .zen-case .jtbd { gap: 24px; }
  .zen-case .zen-solution { gap: 32px; }

@@ -449,6 +449,7 @@ function createScrambleJobs(root) {
     if (element.closest('.home-menu-handle')) return () => {};
     if (scrambleJobCache.has(element)) return scrambleJobCache.get(element);
     const glyphs = [...element.textContent];
+    const revealComma = element.parentElement.classList.contains('home-line-digital');
     const menuItem = element.closest('.home-nav a, .home-nav button, .home-cv a, .about-resume, .work-tab, #contacts .remaining-action');
     const letters = glyphs.filter(glyph => /[\p{L}\p{N}]/u.test(glyph)).length;
     let duration = menuItem || letters <= 4 ? Math.min(550, 200 + letters * 38) : 760;
@@ -480,6 +481,7 @@ function createScrambleJobs(root) {
           const locked = Math.floor(glyphs.length * Math.max(0, (progress - .17) / .83));
           const visible = Math.ceil(glyphs.length * Math.min(1, .28 + progress * 2));
           overlay.textContent = glyphs.map((glyph, i) => {
+            if (revealComma && glyph === ',') return ' ';
             if (i < locked || /[\s\[\]]/.test(glyph)) return glyph;
             if (i >= visible) return ' ';
             return alphabet[Math.floor(Math.random() * alphabet.length)];

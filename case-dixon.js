@@ -11,7 +11,6 @@ const dixonDanceCase = t => ({
   coverAlt: t('Обложка гайдлайна Dixon Dance', "Dixon Dance brand guidelines cover"),
   imageFormat: 'webp',
   imagePreviews: {'page-01': 1440},
-  zoom: true,
   imageSizes: {
     ...Object.fromEntries(Array.from({length: 14}, (_, index) => [`page-${String(index + 1).padStart(2, '0')}`, [1920, 1080]])),
     'dancer-merch': [1122, 1402],

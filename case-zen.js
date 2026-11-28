@@ -151,7 +151,7 @@ const zenSocialCase = t => ({
   ),
   "persona": `<div class="persona-card" id="zen-persona">
         <div class="persona-lead">
-          <img class="zen-persona-photo" src="assets/cases/zen/persona_anna.png" alt="${t("Анна, пользовательская персона", "Anna, working user persona")}" width="493" height="740" loading="lazy" decoding="async">
+          ${caseImageButton(`<img src="assets/cases/zen/persona_anna.png" alt="${t("Анна, пользовательская персона", "Anna, working user persona")}" width="493" height="740" loading="lazy" decoding="async">`, 'assets/cases/zen/persona_anna.png', 'case-picture-zoom zen-persona-photo')}
           <div class="persona-id">ANNA / USER 01</div>
           <h3>${t("Анна, 27 лет", "Anna, 27")}</h3>
           <p>${t("Работает в digital. Регулярно пользуется Instagram, чтобы общаться с друзьями и смотреть Stories.", "Works in digital and regularly uses Instagram to keep up with friends and watch Stories.")}</p>
@@ -267,7 +267,7 @@ function zenSocialCasePage(d) {
     const file = isIteration ? name.replace('.webp', '-preview.webp') : name;
     return '<img src="assets/cases/zen/' + file + '" alt="' + esc(alt) + '" width="' + width + '" height="' + height + '" loading="' + (eager ? 'eager' : 'lazy') + '" fetchpriority="' + (eager ? 'high' : 'low') + '" decoding="async">';
   };
-  const screenButton = (name, title, classes, label = '') => '<button type="button" class="' + classes + '" data-zen-screen="' + name + '" data-caption="' + esc(title) + '" aria-label="' + t("Увеличить: ", "Enlarge: ") + esc(title) + '">' + image(name, title) + label + '</button>';
+  const screenButton = (name, title, classes, label = '') => caseImageButton(image(name, title) + label, 'assets/cases/zen/' + name, classes);
   const screenFigure = ({image: name, caption}) => '<figure class="zen-product-artifact">' + screenButton(name, caption, 'phone decision-phone') + '<figcaption>' + esc(caption) + '</figcaption></figure>';
   const chapter = (n, title, content) => '<section class="case-chapter" id="zen-' + n + '" aria-labelledby="zen-title-' + n + '"><h2 id="zen-title-' + n + '">' + n + ' / ' + title + '</h2>' + content + '</section>';
   const gallery = (before, count) => '<div id="' + (before ? 'zen-before-track' : 'zen-after-track') + '" class="zen-gallery ' + (before ? 'zen-gallery-before case-image-rail' : 'zen-gallery-after') + '" tabindex="0" role="region" aria-labelledby="' + (before ? 'zen-before-title' : 'zen-after-title') + '">' + Array.from({length: count}, (_, i) => {
@@ -287,7 +287,7 @@ function zenSocialCasePage(d) {
     '<section class="case-introduction"><a class="case-back" href="' + home + '#work">← ' + t("Все проекты", "All projects") + '</a><p class="case-eyebrow">mobile app / ux/ui design</p><h1 id="case-title"><span class="home-scramble" data-scramble>ZenSocial</span></h1>' +
     '<p class="case-summary">' + esc(d.summary) + '</p><dl class="zen-facts">' + d.facts.map(([label, value]) => '<div><dt>' + label + '</dt><dd>' + esc(value).replaceAll('\n', '<br>') + '</dd></div>').join('') + '</dl>' +
     '<div class="hero-visual" id="zen-hero-visual" tabindex="0" role="region" aria-label="' + t("Экраны ZenSocial", "ZenSocial screens") + '">' + coverMockups.map(([name, alt], index) =>
-      '<div class="zen-cover-mockup zen-cover-' + name + '">' + image('app-store-' + name + '.webp', alt, index < 2) + '</div>'
+      caseImageButton(image('app-store-' + name + '.webp', alt, index < 2), 'assets/cases/zen/app-store-' + name + '.webp', 'case-picture-zoom zen-cover-mockup zen-cover-' + name)
     ).join('') + '</div></section>' +
     chapter('02', t("О проекте", "About the project"), d.about.map(([title, text]) => '<div class="case-block"><h3>' + title + '</h3>' + paragraphs(text) + '</div>').join('')) +
     chapter('03', t("UX-анализ", "UX analysis"), '<div class="case-block"><h3>User Persona</h3>' + paragraphs(d.personaIntro) + '</div><div class="zen-product-artifact">' + d.persona + '</div>' +
@@ -309,8 +309,7 @@ function zenSocialCasePage(d) {
         {image: 'feed-explore.webp', caption: t("Размытые рекомендации в разделе поиска", "Blurred suggestions in Explore")},
         {image: 'settings-filter.webp', caption: t("Настройки фильтра перед входом в Instagram", "Filter settings before opening Instagram")}
       ].map(screenFigure).join('') + '</div>') +
-    '<nav class="case-next" aria-label="' + t("Другие кейсы", "More case studies") + '"><h2>' + t("Следующий кейс", "Next case study") + '</h2><a class="case-next-link" href="' + caseUrl('choreo') + '">XoreoKids →</a><a href="' + home + '#work">← ' + t("Все проекты", "All projects") + '</a></nav>' +
-    '<dialog class="zen-lightbox" aria-label="' + t("Увеличенный экран приложения", "Enlarged app screen") + '"><button type="button" class="zen-lightbox-close" autofocus aria-label="' + t("Закрыть увеличенный экран", "Close enlarged screen") + '">✕</button><figure><img alt=""><figcaption></figcaption></figure></dialog></div></article>';
+    '<nav class="case-next" aria-label="' + t("Другие кейсы", "More case studies") + '"><h2>' + t("Следующий кейс", "Next case study") + '</h2><a class="case-next-link" href="' + caseUrl('choreo') + '">XoreoKids →</a><a href="' + home + '#work">← ' + t("Все проекты", "All projects") + '</a></nav></div></article>';
   return html.replace(/>([^<>]+)</g, (_, text) => '>' + joinRussianShortWords(text) + '<');
 }
 
@@ -333,16 +332,4 @@ function setupZenSocialCase() {
     });
   });
   chartObserver.observe(chart);
-  const dialog = root.querySelector('.zen-lightbox');
-  root.querySelectorAll('[data-zen-screen]').forEach(button => {
-    button.addEventListener('click', () => {
-      const image = dialog.querySelector('img');
-      image.src = 'assets/cases/zen/' + button.dataset.zenScreen;
-      image.alt = button.dataset.caption;
-      dialog.querySelector('figcaption').textContent = button.dataset.caption;
-      dialog.showModal();
-    });
-  });
-  dialog.querySelector('button').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 }

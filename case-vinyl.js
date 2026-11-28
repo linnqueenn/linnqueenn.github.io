@@ -5,7 +5,7 @@ const vinylStoreCase = t => ({
     "An online record shop designed for a new music retailer. The project covers the full shopping journey, from exploring the catalogue and finding a record to placing an order."
   ),
   cover: 'cover', coverAlt: t('Vinyl Store: интернет-магазин на ноутбуке и телефоне', "Vinyl Store on desktop and mobile"),
-  imageFormat: 'webp', zoom: true,
+  imageFormat: 'webp',
   imagePreviews: {cover: 1800, '07': 1800, '08': 1800, 'catalog-desktop': 1800, 'catalog-mobile': 900},
   imagePreviewSizes: {
     'catalog-desktop': '(max-width: 600px) calc(100vw - 32px), (max-width: 1080px) 71vw, 760px',

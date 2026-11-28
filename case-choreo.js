@@ -8,7 +8,6 @@ const choreoKidsCase = t => ({
     "Xoreokids is a contemporary dance studio in Saint Petersburg. The site introduces parents to its teaching approach, classes and atmosphere, and helps them choose a group and book a trial class."
   ),
   imageFormat: 'webp',
-  zoom: true,
   imageSizes: {
     'hero-desktop': [1440, 855],
     'concept-one': [1280, 665], 'concept-two': [1280, 761],
@@ -122,8 +121,8 @@ const choreoKidsCase = t => ({
           "Each value has its own text and photo. The mobile version uses more compact navigation."
         )
       ], visualLayout: 'choreo-pair', visuals: [
-        ['values-desktop-refresh', t('Переключение ценностей студии на компьютере', "Switching between studio values on desktop"), t('Десктоп', "Desktop")],
-        ['values-motion-mobile', t('Переключение ценностей студии на телефоне', "Switching between studio values on a phone"), t('Мобильная версия', "Mobile")]
+        ['values-desktop-refresh', t('Переключение ценностей студии на компьютере', "Switching between studio values on desktop"), caseDeviceLabel('desktop')],
+        ['values-motion-mobile', t('Переключение ценностей студии на телефоне', "Switching between studio values on a phone"), caseDeviceLabel('mobile')]
       ]},
       {title: t('04. Постановки и выступления', "04. Productions and performances"), text: [
         t(
@@ -134,9 +133,9 @@ const choreoKidsCase = t => ({
           'Посетитель может выбирать выступления и смотреть их непосредственно на странице, не переходя на внешние площадки.',
           "Visitors can choose a performance and watch it on the page."
         )
-      ], visualLayout: 'choreo-pair choreo-equal-height', visuals: [
-        ['gallery-desktop', t('Галерея постановок на компьютере', "Performance gallery on desktop"), t('Десктоп', "Desktop")],
-        ['gallery-mobile', t('Галерея постановок на телефоне', "Performance gallery on mobile"), t('Телефон', "Mobile")]
+      ], visualLayout: 'choreo-pair choreo-stacked', visuals: [
+        ['gallery-desktop', t('Галерея постановок на компьютере', "Performance gallery on desktop"), caseDeviceLabel('desktop')],
+        ['gallery-mobile', t('Галерея постановок на телефоне', "Performance gallery on mobile"), caseDeviceLabel('mobile')]
       ]},
       {title: t('05. Запись на пробное занятие', "05. Booking a trial class"), text: [
         t(
@@ -149,8 +148,8 @@ const choreoKidsCase = t => ({
         ),
         t('Так родители могут выбрать наиболее удобный способ связи со студией.', "This gives parents a choice of how to contact the studio.")
       ], visualLayout: 'choreo-pair', visuals: [
-        ['booking-desktop', t('Форма записи на пробное занятие на компьютере', "Trial class booking form on desktop"), t('Десктоп', "Desktop")],
-        ['booking-mobile', t('Форма записи на пробное занятие на телефоне', "Trial class booking form on mobile"), t('Мобильная версия', "Mobile")]
+        ['booking-desktop', t('Форма записи на пробное занятие на компьютере', "Trial class booking form on desktop"), caseDeviceLabel('desktop')],
+        ['booking-mobile', t('Форма записи на пробное занятие на телефоне', "Trial class booking form on mobile"), caseDeviceLabel('mobile')]
       ]}
     ]},
     {title: t('Визуальная концепция', "Visual direction"), blocks: [{text: [
@@ -210,15 +209,14 @@ const choreoKidsCase = t => ({
     ]}, {title: t('Другие разделы сайта', "More of the website"), imageRails: {
       id: 'other-screens',
       rows: ['desktop', 'mobile'].map(device => [
-        device, device === 'desktop' ? t('Десктоп', "Desktop") : t('Мобильная версия', "Mobile"),
+        device,
         [
           ['mentors', t('Наши наставники', "Meet the instructors")],
           ['groups', t('Группы и расписание', "Groups and timetable")],
           ['prices', t('Стоимость занятий', "Class prices")],
           ['studios', t('Наши студии', "Our studios")]
-        ].map(([name, label]) => [`${name}-${device}`, label, label]),
-        device === 'desktop'
+        ].map(([name, label]) => [`${name}-${device}`, label, label])
       ])
-    }}]}
+    }}, {link: {url: 'https://xopeokids.ru/page264116709.html', label: t('Посмотреть сайт Xoreokids', 'Visit the Xoreokids website')}}]}
   ]
 });
