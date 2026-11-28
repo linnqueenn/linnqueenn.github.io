@@ -68,6 +68,7 @@ function serviceCollageMarkup(index) {
 function setupServiceCollages(media) {
   const groups = [...media.querySelectorAll('.service-collage')];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const compact = matchMedia('(max-width: 600px), (max-width: 1100px) and (orientation: portrait)');
   let selected = 0, visible = false, sequence = 0;
   const loads = new Map();
   const played = new Set();
@@ -100,10 +101,10 @@ function setupServiceCollages(media) {
   }
   const resize = new ResizeObserver(() => {
     groups.forEach((group,i) => {
-      const [x,y,w,h] = matchMedia('(max-width: 600px)').matches ? serviceCollageBounds[i] : [0,0,680,511];
+      const [x,y,w,h] = compact.matches ? serviceCollageBounds[i] : [0,0,680,511];
       const scale = Math.min(media.clientWidth / w, media.clientHeight / h);
       group.style.setProperty('--collage-scale', String(scale));
-      const blurAdjust = matchMedia('(max-width: 600px)').matches ? Math.min(1, .8 / Math.max(.01, scale)) : 1;
+      const blurAdjust = compact.matches ? Math.min(1, .8 / Math.max(.01, scale)) : 1;
       group.querySelectorAll('[data-blur]').forEach(art => art.style.setProperty('--render-blur', Number(art.dataset.blur) * blurAdjust + 'px'));
       const layout = group.firstElementChild;
       layout.style.left = (media.clientWidth - w * scale) / 2 - x * scale + 'px';
