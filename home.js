@@ -21,7 +21,7 @@ function homeScreen(t, person, cv) {
         <button type="button" id="home-language" aria-label="${t('English version', 'Русская версия')}">${scramble(t('[en]', '[ru]'))}</button>
         <nav aria-label="${t('Навигация', 'Navigation')}">${items.map(([id, label]) =>
           `<a href="#${id}">${scramble('[' + label + ']')}</a>`).join('')}</nav>
-        <a class="home-menu-handle" href="${t('./', './?lang=en')}">${scramble('[linqueenn]')}</a>
+        <a class="home-menu-handle" href="${home}">${scramble('[linqueenn]')}</a>
         <a class="home-menu-resume" href="${cv}" download><span>${t('скачать резюме', 'download résumé')}</span><img src="${art}download.svg" alt=""></a>
         </div>
       </header>
@@ -32,11 +32,11 @@ function homeScreen(t, person, cv) {
         </span>
         <span class="home-line home-line-visual">${scramble('Visual')} ${scramble('systems')}</span>
       </h1>
-      <div class="home-portrait home-portrait-pending">
+      <a class="home-portrait home-portrait-pending" href="${home}" aria-label="${t('На главную', 'Home')}">
         <img class="home-shadow-left" src="${art}left-shadow.svg" alt="">
         <img class="home-shadow-right" src="${art}right-shadow.svg" alt="">
         <img class="home-person" src="${art}portrait.png" alt="${person}">
-      </div>
+      </a>
       <div class="home-profile">
         <a href="https://t.me/linqueenn">${scramble('@linqueenn')}</a>
         <p><img src="${art}status.svg" alt="">${t('открыта к проектам', 'open for projects')}</p>
@@ -62,19 +62,6 @@ function setupPortraitArrival(startText) {
   const useNewArrival = !mode || mode === '6221' || mode === 'frames';
   if (useNewArrival) portrait.classList.add('home-portrait-6221');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  portrait.setAttribute('role', 'button');
-  portrait.setAttribute('tabindex', '0');
-  portrait.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Replay character arrival' : 'Повторить появление персонажа');
-  const replay = () => {
-    if (reduced.matches || portrait.classList.contains('home-portrait-pending')) return;
-    stopVideo();
-    portrait.classList.add('home-portrait-pending', 'home-portrait-6221');
-    stopVideo = playPortraitArrival(portrait, image, showPortrait, () => {});
-  };
-  portrait.addEventListener('click', replay);
-  portrait.addEventListener('keydown', event => {
-    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); replay(); }
-  });
   let stopVideo = () => {};
   const showPortrait = () => {
     startText();

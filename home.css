@@ -52,7 +52,7 @@
   overflow: clip;
 }
 .home-gem-slot img { position: absolute; width: 319.43%; height: 187.1%; max-width: none; left: -109.72%; top: -45.16%; }
-.home-portrait { left: calc(627 * var(--u)); top: calc(-3 * var(--u)); width: calc(580 * var(--u)); pointer-events: none; }
+.home-portrait { left: calc(627 * var(--u)); top: calc(-3 * var(--u)); width: calc(580 * var(--u)); }
 .home-person { position: relative; width: 100%; aspect-ratio: 580 / 756; }
 .home-portrait-6221 :is(.home-shadow-left, .home-shadow-right) { display: none; }
 .home-portrait-arrival { position: absolute; display: block; max-width: none; height: auto; opacity: 0; }
@@ -546,8 +546,7 @@
 .back-to-top { width: 48px; height: 48px; display: grid; place-items: center; padding: 8px; border: 0; background: transparent; color: #282828; }
 @media (max-width: 600px) { .page-top-row { padding-inline: 16px; } }
 
-.home-portrait[role="button"] { pointer-events: auto; cursor: pointer; }
 .home-portrait-arrival { pointer-events: none; }
-.home-portrait[role="button"]:focus-visible { outline: 2px solid #507400; outline-offset: 4px; }
+.home-portrait:focus-visible { outline: 2px solid #507400; outline-offset: 4px; }
 body.home-page .page-top-row,
 body.case-page .page-top-row { justify-content: start; }
