@@ -35,7 +35,7 @@ function homeScreen(t, person, cv) {
       <a class="home-portrait home-portrait-pending" href="${home}" aria-label="${t('На главную', 'Home')}">
         <img class="home-shadow-left" src="${art}left-shadow.svg" alt="">
         <img class="home-shadow-right" src="${art}right-shadow.svg" alt="">
-        <img class="home-person" data-src="${art}portrait-still.webp" alt="${person}">
+        <img class="home-person" src="${art}portrait.png" alt="${person}">
       </a>
       <div class="home-profile">
         <a href="https://t.me/linqueenn">${scramble('@linqueenn')}</a>
@@ -59,87 +59,103 @@ function setupPortraitArrival(startText) {
   const portrait = document.querySelector('.home-portrait');
   const image = portrait.querySelector('.home-person');
   const mode = new URLSearchParams(location.search).get('portrait');
-  if (portraitArrival) portrait.classList.add('home-portrait-6221');
+  const useNewArrival = !mode || mode === '6221' || mode === 'frames';
+  if (useNewArrival) portrait.classList.add('home-portrait-6221');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let stopVideo = () => {};
   const showPortrait = () => {
-    loadPortraitStill(image);
     startText();
     stopVideo();
     portrait.classList.remove('home-portrait-pending', 'home-portrait-materializing',
       'home-portrait-playing', 'home-portrait-blending');
   };
-  const classic = () => {
-    loadPortraitStill(image);
-    startText();
-    stopVideo();
-    portrait.classList.remove('home-portrait-playing', 'home-portrait-blending', 'home-portrait-video-mode');
-    portrait.addEventListener('animationend', event => {
-      if (event.target === portrait && event.animationName === 'home-portrait-load') showPortrait();
-    });
-    portrait.classList.replace('home-portrait-pending', 'home-portrait-materializing');
-  };
+  const onMotionChange = () => { if (reduced.matches) showPortrait(); };
   if (reduced.matches) return showPortrait();
-  reduced.addEventListener('change', () => { if (reduced.matches) showPortrait(); });
-  if (portraitArrival) {
-    stopVideo = playPortraitArrival(portrait, image, showPortrait, startText, classic);
-    return;
-  }
-  loadPortraitStill(image);
+  reduced.addEventListener('change', onMotionChange);
   image.decode().then(() => {
     if (!portrait.classList.contains('home-portrait-pending')) return;
-    if (mode === 'classic') classic();
+    const classic = () => {
+      startText();
+      stopVideo();
+      portrait.classList.remove('home-portrait-playing', 'home-portrait-blending', 'home-portrait-video-mode');
+      portrait.addEventListener('animationend', event => {
+        if (event.target === portrait && event.animationName === 'home-portrait-load') showPortrait();
+      });
+      portrait.classList.replace('home-portrait-pending', 'home-portrait-materializing');
+    };
+    if (useNewArrival) stopVideo = playPortraitArrival(portrait, image, showPortrait, startText);
+    else if (mode === 'classic') classic();
     else stopVideo = playPortraitVideo(portrait, showPortrait, classic, mode, startText);
   }, showPortrait);
 }
 
-function loadPortraitStill(image) {
-  if (!image.hasAttribute('src')) image.src = image.dataset.src;
-}
-
-function playPortraitArrival(portrait, image, finish, startText, fallback) {
-  const {prefersAtlas, sheets: urls, start} = portraitArrival;
-  const controller = new AbortController();
-  let sheets = [];
-  let surface;
-  let video;
-  let videoUrl;
+let portraitVideoSourcePromise;
+function playPortraitArrival(portrait, image, finish, startText) {
+  const video = document.createElement('video');
+  video.className = 'home-portrait-arrival';
+  video.muted = true;
+  video.playsInline = true;
+  video.setAttribute('muted', '');
+  video.setAttribute('playsinline', '');
+  video.preload = 'auto';
+  video.setAttribute('aria-hidden', 'true');
   let stopped = false;
-  let atlasStarted = false;
-  let animationFrame;
-  let videoFrame;
+  let frame;
   let shineIn;
   let shine;
   let entryOffset, left;
-  let mediaTime = start / 1000;
-  const timeout = setTimeout(fallback, 18000);
+  let surface = video;
+  let atlasStarted = false;
+  let atlasFrame;
+  let atlasTime = 0;
+  let sheets = [];
+  const mobileStart = matchMedia('(max-width: 600px)').matches ? .72 : 0;
+  const timeout = setTimeout(startAtlas, 12000);
 
   function measure() {
     const rect = image.getBoundingClientRect();
     const scale = rect.height / 1024;
     const videoScale = scale * 1.001;
     const width = 1920 * videoScale;
-    // Align the last frame with the still portrait.
+    // Align the same point on the last video frame and the static PNG.
     left = 381 * rect.width / 768 - 1200 * videoScale;
     surface.style.width = `${width}px`;
     surface.style.top = `${-8 * scale}px`;
     entryOffset = Math.max(0, document.documentElement.clientWidth - rect.left - left - width);
-    position();
+    position(atlasStarted ? atlasTime : video.currentTime);
   }
 
-  function position() {
-    const progress = Math.max(0, Math.min(1, (mediaTime - .400) / (1.383333 - .400)));
+  function position(time) {
+    // Keep the cut edge against the viewport until the full silhouette clears it.
+    const progress = Math.max(0, Math.min(1, (time - .400) / (1.383333 - .400)));
     const remaining = 1 - progress * progress * (3 - 2 * progress);
     surface.style.left = `${left + entryOffset * remaining}px`;
   }
 
-  function showFirstFrame() {
-    clearTimeout(timeout);
-    surface.classList.add('home-portrait-arrival-ready');
-    loadPortraitStill(image);
-    startText();
+  function updateFrame(_now, {mediaTime}) {
+    position(mediaTime);
+    frame = video.requestVideoFrameCallback(updateFrame);
   }
 
+  function updateTime() { position(video.currentTime); }
+
+  video.addEventListener('playing', () => {
+    if (stopped || atlasStarted) return;
+    clearTimeout(timeout);
+    // Some decoders play the color plane but ignore WebM's alpha channel.
+    const probe = document.createElement('canvas');
+    probe.width = probe.height = 1;
+    const context = probe.getContext('2d', {willReadFrequently: true});
+    if (!context) return startAtlas();
+    context.drawImage(video, 8, 8, 1, 1, 0, 0, 1, 1);
+    if (context.getImageData(0, 0, 1, 1).data[3] !== 0) return startAtlas();
+    measure();
+    video.classList.add('home-portrait-arrival-ready');
+    startText();
+    window.addEventListener('resize', measure);
+    if (video.requestVideoFrameCallback) frame = video.requestVideoFrameCallback(updateFrame);
+    else video.addEventListener('timeupdate', updateTime);
+  }, {once: true});
   function completeArrival() {
     if (stopped) return;
     const silhouette = document.createElement('canvas');
@@ -173,142 +189,117 @@ function playPortraitArrival(portrait, image, finish, startText, fallback) {
       finish();
     }, () => {});
   }
-
+  video.addEventListener('ended', completeArrival, {once: true});
+  video.addEventListener('error', () => { if (!stopped) startAtlas(); }, {once: true});
+  // Safari can decode WebM's colour plane without its alpha. These lossless
+  // WebP frames come from the same processed video and need no autoplay permission.
   async function startAtlas() {
     if (stopped || atlasStarted) return;
     atlasStarted = true;
-    if (videoFrame !== undefined) video.cancelVideoFrameCallback(videoFrame);
-    video?.pause();
-    video?.remove();
-    sheets = urls.map(src => {
-      if (!src) return null;
-      const sheet = new Image();
-      sheet.src = src;
-      return sheet;
-    });
+    clearTimeout(timeout);
+    video.pause();
+    if (frame !== undefined) video.cancelVideoFrameCallback(frame);
+    video.remove();
     try {
-      const atlas = fetch('assets/home/portrait-6221.json', {signal: controller.signal}).then(response => {
-        if (!response.ok) throw new Error('Portrait frames unavailable');
-        return response.json();
+      const response = await fetch('assets/home/portrait-6221.json');
+      if (!response.ok) throw new Error('Portrait frames unavailable');
+      const atlas = await response.json();
+      sheets = Array.from({length: 1 + Math.max(...atlas.frames.map(item => item[1]))}, (_, index) => {
+        const sheet = new Image();
+        sheet.src = 'assets/home/portrait-6221-' + index + '.webp';
+        return sheet;
       });
-      const [{frames, end}] = await Promise.all([atlas, ...sheets.filter(Boolean).map(sheet => sheet.decode())]);
+      await Promise.all(sheets.map(sheet => sheet.decode()));
       if (stopped) return;
       surface = document.createElement('canvas');
       surface.width = 1920;
       surface.height = 1038;
-      surface.className = 'home-portrait-arrival';
+      surface.className = 'home-portrait-arrival home-portrait-arrival-ready';
       surface.setAttribute('aria-hidden', 'true');
       const context = surface.getContext('2d');
-      if (!context) return fallback();
+      if (!context) return finish();
       portrait.append(surface);
       measure();
       window.addEventListener('resize', measure);
-      let elapsed = start;
-      let previousTime;
+      startText();
+      let startedAt;
       let current = -1;
+      let previousTime;
       function draw(now) {
         if (stopped) return;
-        if (!document.hidden && previousTime !== undefined && now - previousTime <= 250) {
-          elapsed = Math.min(end, elapsed + now - previousTime);
+        if (startedAt === undefined) startedAt = now - mobileStart * 1000;
+        // Background tabs must not skip the walk and jump straight to the PNG.
+        if (document.hidden) {
+          startedAt += previousTime === undefined ? 0 : now - previousTime;
+          previousTime = now;
+          atlasFrame = requestAnimationFrame(draw);
+          return;
         }
+        if (previousTime !== undefined && now - previousTime > 250) startedAt += now - previousTime;
         previousTime = now;
-        mediaTime = elapsed / 1000;
+        const elapsed = Math.min(now - startedAt, atlas.end);
+        atlasTime = elapsed / 1000;
         let next = current;
-        while (next + 1 < frames.length && frames[next + 1][0] <= elapsed) next++;
+        while (next + 1 < atlas.frames.length && atlas.frames[next + 1][0] <= elapsed) next++;
         if (next !== current) {
-          const firstFrame = current === -1;
-          const [, sheet, sx, sy, width, height, x, y] = frames[next];
           current = next;
           context.clearRect(0, 0, surface.width, surface.height);
-          context.drawImage(sheets[sheet], sx, sy, width, height, x, y, width, height);
-          for (let i = 0; i < sheet; i++) sheets[i]?.removeAttribute('src');
-          if (firstFrame) showFirstFrame();
+          if (current >= 0) {
+            const [, sheet, x, y, width, height, targetX, targetY] = atlas.frames[current];
+            context.drawImage(sheets[sheet], x, y, width, height, targetX, targetY, width, height);
+            // Release decoded sheets once their last frame has passed.
+            for (let i = 0; i < sheet; i++) if (sheets[i].src) sheets[i].removeAttribute('src');
+          }
         }
-        position();
-        if (elapsed < end) animationFrame = requestAnimationFrame(draw);
-        else image.decode().then(completeArrival, completeArrival);
+        position(atlasTime);
+        if (elapsed < atlas.end) atlasFrame = requestAnimationFrame(draw);
+        else completeArrival();
       }
-      animationFrame = requestAnimationFrame(draw);
+      atlasFrame = requestAnimationFrame(draw);
     } catch {
-      if (!stopped) fallback();
+      if (!stopped) finish();
     }
   }
 
-  function startVideo() {
-    video = document.createElement('video');
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = 'auto';
-    video.className = 'home-portrait-arrival';
-    video.setAttribute('aria-hidden', 'true');
-    surface = video;
+  const needsAtlas = new URLSearchParams(location.search).get('portrait') === 'frames'
+    || /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (needsAtlas) startAtlas();
+  else {
     portrait.append(video);
-    video.addEventListener('loadedmetadata', () => {
+    // Fully buffer once: the short walk must not stall waiting for the network.
+    portraitVideoSourcePromise ??= fetch('assets/home/portrait-6221.webm', {cache: 'force-cache', priority: 'high'})
+      .then(response => { if (!response.ok) throw new Error('Portrait video unavailable'); return response.blob(); })
+      .then(blob => URL.createObjectURL(blob))
+      .catch(error => { portraitVideoSourcePromise = null; throw error; });
+    portraitVideoSourcePromise.then(url => {
       if (stopped || atlasStarted) return;
-      if (start) video.currentTime = start / 1000;
-      video.play().catch(startAtlas);
-    }, {once: true});
-    video.addEventListener('playing', () => {
-      if (stopped || atlasStarted) return;
-      const probe = document.createElement('canvas');
-      probe.width = probe.height = 1;
-      const context = probe.getContext('2d', {willReadFrequently: true});
-      if (!context) return startAtlas();
-      context.drawImage(video, 8, 8, 1, 1, 0, 0, 1, 1);
-      if (context.getImageData(0, 0, 1, 1).data[3] !== 0) return startAtlas();
-      mediaTime = video.currentTime;
-      measure();
-      showFirstFrame();
-      window.addEventListener('resize', measure);
-      if (video.requestVideoFrameCallback) {
-        const update = (_now, frame) => {
-          mediaTime = frame.mediaTime;
-          position();
-          videoFrame = video.requestVideoFrameCallback(update);
-        };
-        videoFrame = video.requestVideoFrameCallback(update);
-      } else {
-        video.addEventListener('timeupdate', () => {
-          mediaTime = video.currentTime;
-          position();
-        });
-      }
-    }, {once: true});
-    video.addEventListener('ended', () => {
-      if (!atlasStarted) image.decode().then(completeArrival, completeArrival);
-    }, {once: true});
-    video.addEventListener('error', startAtlas, {once: true});
-    fetch('assets/home/portrait-6221.webm', {signal: controller.signal, cache: 'force-cache', priority: 'high'})
-      .then(response => {
-        if (!response.ok) throw new Error('Portrait video unavailable');
-        return response.blob();
-      })
-      .then(blob => {
-        if (stopped || atlasStarted) return;
-        videoUrl = URL.createObjectURL(blob);
-        video.src = videoUrl;
-      })
-      .catch(startAtlas);
+      video.src = url;
+      const play = () => {
+        if (mobileStart) video.currentTime = mobileStart;
+        return video.play();
+      };
+      if (video.readyState >= 1) return play();
+      return new Promise((resolve, reject) => {
+        video.addEventListener('loadedmetadata', () => play().then(resolve, reject), {once: true});
+        video.addEventListener('error', reject, {once: true});
+      });
+    }).catch(() => { if (!stopped) startAtlas(); });
   }
-
-  if (prefersAtlas) startAtlas();
-  else startVideo();
 
   return () => {
     stopped = true;
     clearTimeout(timeout);
-    controller.abort();
-    cancelAnimationFrame(animationFrame);
+    cancelAnimationFrame(atlasFrame);
+    sheets.forEach(sheet => sheet.removeAttribute('src'));
+    sheets = [];
+    if (surface !== video) surface.remove();
+    shineIn?.cancel();
+    shine?.remove();
+    if (frame !== undefined) video.cancelVideoFrameCallback(frame);
     window.removeEventListener('resize', measure);
-    sheets.forEach(sheet => sheet?.removeAttribute('src'));
-    if (videoFrame !== undefined) video.cancelVideoFrameCallback(videoFrame);
-    video?.pause();
-    if (videoUrl) URL.revokeObjectURL(videoUrl);
-    surface?.remove();
-    if (shine) {
-      shineIn?.cancel();
-      shine.remove();
-    }
+    video.pause();
+    video.remove();
   };
 }
 
@@ -396,20 +387,14 @@ const homeScrambleStagger = 34;
 
 function setupHomeScramble() {
   setupPortfolioMenu(document.querySelector('.home-nav'), document.querySelector('.home-screen'));
-  const screen = document.querySelector('.home-screen');
-  const titleJobs = createScrambleJobs(screen.querySelector('.home-title'), {initial: true});
-  createScrambleJobs(screen.querySelector('.home-intro h2'), {initial: true});
-  const jobs = createScrambleJobs(screen);
+  const jobs = createScrambleJobs(document.querySelector('.home-screen'));
   let started = false;
   return (remaining = 0) => {
-    if (started) return false;
+    if (started) return;
     started = true;
     const delay = Math.max(0, remaining - (jobs.length - 1) * homeScrambleStagger - 760);
-    titleJobs.forEach((play, index) => play(index * homeScrambleStagger));
-    jobs.forEach((play, index) => {
-      if (!titleJobs.includes(play)) play(delay + index * homeScrambleStagger);
-    });
-    return true;
+    const start = () => jobs.forEach((play, index) => play(delay + index * homeScrambleStagger));
+    document.fonts.load('22px "Ubuntu Sans Mono"').then(start, start);
   };
 }
 
@@ -445,11 +430,10 @@ function setupPortfolioMenu(header, anchor) {
 }
 
 const scrambleJobCache = new WeakMap();
-function createScrambleJobs(root, {initial = false} = {}) {
+function createScrambleJobs(root) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   return [...root.querySelectorAll('[data-scramble]')].map(element => {
     if (element.closest('.home-menu-handle')) return () => {};
-    if (initial && !reduced.matches) element.classList.add('home-scrambling');
     if (scrambleJobCache.has(element)) return scrambleJobCache.get(element);
     const glyphs = [...element.textContent];
     const revealComma = element.parentElement.classList.contains('home-line-digital');
@@ -466,11 +450,7 @@ function createScrambleJobs(root, {initial = false} = {}) {
     let animation;
 
     function play(delay = 0, activeDuration = duration) {
-      if (reduced.matches) {
-        element.classList.remove('home-scrambling');
-        overlay.textContent = '';
-        return;
-      }
+      if (reduced.matches) return;
       cancelAnimationFrame(animation);
       const start = performance.now() + delay;
       let lastTick = -1;
@@ -497,8 +477,7 @@ function createScrambleJobs(root, {initial = false} = {}) {
         }
         animation = requestAnimationFrame(frame);
       }
-      if (delay > 0) animation = requestAnimationFrame(frame);
-      else frame(start);
+      animation = requestAnimationFrame(frame);
     }
 
     const heroButton = element.closest('.home-screen .home-cta, #pricing .pricing-cta');

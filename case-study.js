@@ -127,8 +127,8 @@ function setupCasePage() {
   app.insertAdjacentHTML('afterbegin', casePageHeader(t, cv));
   document.querySelector('#case-language').onclick = language.onclick;
   setupPortfolioMenu(document.querySelector('.case-header'), document.querySelector('.case-header-slot'));
-  const jobs = createScrambleJobs(document.querySelector('.case-introduction') || app, {initial: true});
-  jobs.forEach((play, index) => play(index * 70));
+  const jobs = createScrambleJobs(document.querySelector('.case-introduction') || app);
+  document.fonts.ready.then(() => jobs.forEach((play, index) => play(index * 70)));
   app.querySelectorAll('.case-image-rail-row:has(.case-image-rail)').forEach(setupCaseImageRail);
   setupCaseLightbox(app.querySelector('.case-study'));
   const videosWithPosters = app.querySelectorAll('video[data-case-poster]');
