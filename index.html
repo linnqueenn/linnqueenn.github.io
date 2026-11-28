@@ -11,18 +11,22 @@ const portraitArrival = (() => {
   const mode = params.get('portrait');
   if (params.get('case') || (mode && mode !== '6221' && mode !== 'frames')) return null;
   const mobile = matchMedia('(max-width: 600px)').matches;
-  const asset = 'assets/home/portrait-arrival-' + (mobile ? 'mobile' : 'wide');
-  const sheets = Array.from({length: mobile ? 3 : 4}, (_, index) => asset + '-' + index + '.webp');
-  if (matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-    for (const href of sheets) {
+  const prefersAtlas = mode === 'frames' || /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const firstSheet = mobile ? 1 : 0;
+  const sheets = Array.from({length: 7}, (_, index) =>
+    index >= firstSheet ? 'assets/home/portrait-6221-' + index + '.webp' : null);
+  if (prefersAtlas && matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    for (const href of sheets.slice(firstSheet)) {
       const link = document.createElement('link');
       link.rel = 'preload';
       link.as = 'image';
+      link.fetchPriority = 'low';
       link.href = href;
       document.head.append(link);
     }
   }
-  return {manifest: asset + '.json', sheets, start: mobile ? 720 : 0, scale: mobile ? .56 : .70};
+  return {prefersAtlas, sheets, start: mobile ? 720 : 0};
 })();
 </script>
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -32,7 +36,7 @@ const portraitArrival = (() => {
 <link rel="stylesheet" href="work.css?v=20261127-graphic-previews">
 <link rel="stylesheet" href="about.css?v=20261127-desktop-copy-break">
 <script src="typography.js?v=20261127-wrap" defer></script>
-<script src="home.js?v=20261128-synced-entrance" defer></script>
+<script src="home.js?v=20261128-original-portrait-quality" defer></script>
 <script src="work.js?v=20261128-release" defer></script>
 <script src="about.js?v=20261128-tablet-bilingual" defer></script>
 <link rel="stylesheet" href="remaining.css?v=20261128-tablet-bilingual">

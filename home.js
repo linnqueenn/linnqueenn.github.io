@@ -98,27 +98,21 @@ function loadPortraitStill(image) {
 }
 
 function playPortraitArrival(portrait, image, finish, startText, fallback) {
-  const {manifest, sheets: urls, start, scale} = portraitArrival;
+  const {prefersAtlas, sheets: urls, start} = portraitArrival;
   const controller = new AbortController();
-  const sheets = urls.map((src, index) => {
-    const sheet = new Image();
-    sheet.fetchPriority = index === 0 ? 'high' : 'auto';
-    sheet.src = src;
-    return sheet;
-  });
-  const surface = document.createElement('canvas');
-  surface.width = Math.round(1920 * scale);
-  surface.height = Math.round(1038 * scale);
-  surface.className = 'home-portrait-arrival';
-  surface.setAttribute('aria-hidden', 'true');
-  const context = surface.getContext('2d');
+  let sheets = [];
+  let surface;
+  let video;
+  let videoUrl;
   let stopped = false;
+  let atlasStarted = false;
   let animationFrame;
+  let videoFrame;
   let shineIn;
   let shine;
   let entryOffset, left;
   let mediaTime = start / 1000;
-  const timeout = setTimeout(fallback, 4300);
+  const timeout = setTimeout(fallback, 18000);
 
   function measure() {
     const rect = image.getBoundingClientRect();
@@ -139,11 +133,18 @@ function playPortraitArrival(portrait, image, finish, startText, fallback) {
     surface.style.left = `${left + entryOffset * remaining}px`;
   }
 
+  function showFirstFrame() {
+    clearTimeout(timeout);
+    surface.classList.add('home-portrait-arrival-ready');
+    loadPortraitStill(image);
+    startText();
+  }
+
   function completeArrival() {
     if (stopped) return;
     const silhouette = document.createElement('canvas');
-    silhouette.width = surface.width;
-    silhouette.height = surface.height;
+    silhouette.width = 1920;
+    silhouette.height = 1038;
     const context = silhouette.getContext('2d');
     if (!context || !CSS.supports('mask-composite', 'intersect')) return finish();
 
@@ -173,48 +174,125 @@ function playPortraitArrival(portrait, image, finish, startText, fallback) {
     }, () => {});
   }
 
-  const atlas = fetch(manifest, {signal: controller.signal}).then(response => {
-    if (!response.ok) throw new Error('Portrait frames unavailable');
-    return response.json();
-  });
-  Promise.all([atlas, ...sheets.map(sheet => sheet.decode())]).then(([{frames, end}]) => {
-    if (stopped) return;
-    if (!context) return fallback();
-    clearTimeout(timeout);
-    portrait.append(surface);
-    measure();
-    window.addEventListener('resize', measure);
-    let elapsed = start;
-    let previousTime;
-    let current = -1;
-    function draw(now) {
+  async function startAtlas() {
+    if (stopped || atlasStarted) return;
+    atlasStarted = true;
+    if (videoFrame !== undefined) video.cancelVideoFrameCallback(videoFrame);
+    video?.pause();
+    video?.remove();
+    sheets = urls.map(src => {
+      if (!src) return null;
+      const sheet = new Image();
+      sheet.src = src;
+      return sheet;
+    });
+    try {
+      const atlas = fetch('assets/home/portrait-6221.json', {signal: controller.signal}).then(response => {
+        if (!response.ok) throw new Error('Portrait frames unavailable');
+        return response.json();
+      });
+      const [{frames, end}] = await Promise.all([atlas, ...sheets.filter(Boolean).map(sheet => sheet.decode())]);
       if (stopped) return;
-      if (!document.hidden && previousTime !== undefined && now - previousTime <= 250) {
-        elapsed = Math.min(end, elapsed + now - previousTime);
-      }
-      previousTime = now;
-      mediaTime = elapsed / 1000;
-      let next = current;
-      while (next + 1 < frames.length && frames[next + 1][0] <= elapsed) next++;
-      if (next !== current) {
-        const firstFrame = current === -1;
-        const [, sheet, sx, sy, sw, sh, x, y, width, height] = frames[next];
-        current = next;
-        context.clearRect(0, 0, surface.width, surface.height);
-        context.drawImage(sheets[sheet], sx, sy, sw, sh, x * scale, y * scale, width * scale, height * scale);
-        for (let i = 0; i < sheet; i++) if (sheets[i].src) sheets[i].removeAttribute('src');
-        if (firstFrame) {
-          surface.classList.add('home-portrait-arrival-ready');
-          loadPortraitStill(image);
-          startText();
+      surface = document.createElement('canvas');
+      surface.width = 1920;
+      surface.height = 1038;
+      surface.className = 'home-portrait-arrival';
+      surface.setAttribute('aria-hidden', 'true');
+      const context = surface.getContext('2d');
+      if (!context) return fallback();
+      portrait.append(surface);
+      measure();
+      window.addEventListener('resize', measure);
+      let elapsed = start;
+      let previousTime;
+      let current = -1;
+      function draw(now) {
+        if (stopped) return;
+        if (!document.hidden && previousTime !== undefined && now - previousTime <= 250) {
+          elapsed = Math.min(end, elapsed + now - previousTime);
         }
+        previousTime = now;
+        mediaTime = elapsed / 1000;
+        let next = current;
+        while (next + 1 < frames.length && frames[next + 1][0] <= elapsed) next++;
+        if (next !== current) {
+          const firstFrame = current === -1;
+          const [, sheet, sx, sy, width, height, x, y] = frames[next];
+          current = next;
+          context.clearRect(0, 0, surface.width, surface.height);
+          context.drawImage(sheets[sheet], sx, sy, width, height, x, y, width, height);
+          for (let i = 0; i < sheet; i++) sheets[i]?.removeAttribute('src');
+          if (firstFrame) showFirstFrame();
+        }
+        position();
+        if (elapsed < end) animationFrame = requestAnimationFrame(draw);
+        else image.decode().then(completeArrival, completeArrival);
       }
-      position();
-      if (elapsed < end) animationFrame = requestAnimationFrame(draw);
-      else image.decode().then(completeArrival, completeArrival);
+      animationFrame = requestAnimationFrame(draw);
+    } catch {
+      if (!stopped) fallback();
     }
-    animationFrame = requestAnimationFrame(draw);
-  }).catch(() => { if (!stopped) fallback(); });
+  }
+
+  function startVideo() {
+    video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.className = 'home-portrait-arrival';
+    video.setAttribute('aria-hidden', 'true');
+    surface = video;
+    portrait.append(video);
+    video.addEventListener('loadedmetadata', () => {
+      if (stopped || atlasStarted) return;
+      if (start) video.currentTime = start / 1000;
+      video.play().catch(startAtlas);
+    }, {once: true});
+    video.addEventListener('playing', () => {
+      if (stopped || atlasStarted) return;
+      const probe = document.createElement('canvas');
+      probe.width = probe.height = 1;
+      const context = probe.getContext('2d', {willReadFrequently: true});
+      if (!context) return startAtlas();
+      context.drawImage(video, 8, 8, 1, 1, 0, 0, 1, 1);
+      if (context.getImageData(0, 0, 1, 1).data[3] !== 0) return startAtlas();
+      mediaTime = video.currentTime;
+      measure();
+      showFirstFrame();
+      window.addEventListener('resize', measure);
+      if (video.requestVideoFrameCallback) {
+        const update = (_now, frame) => {
+          mediaTime = frame.mediaTime;
+          position();
+          videoFrame = video.requestVideoFrameCallback(update);
+        };
+        videoFrame = video.requestVideoFrameCallback(update);
+      } else {
+        video.addEventListener('timeupdate', () => {
+          mediaTime = video.currentTime;
+          position();
+        });
+      }
+    }, {once: true});
+    video.addEventListener('ended', () => {
+      if (!atlasStarted) image.decode().then(completeArrival, completeArrival);
+    }, {once: true});
+    video.addEventListener('error', startAtlas, {once: true});
+    fetch('assets/home/portrait-6221.webm', {signal: controller.signal, cache: 'force-cache', priority: 'high'})
+      .then(response => {
+        if (!response.ok) throw new Error('Portrait video unavailable');
+        return response.blob();
+      })
+      .then(blob => {
+        if (stopped || atlasStarted) return;
+        videoUrl = URL.createObjectURL(blob);
+        video.src = videoUrl;
+      })
+      .catch(startAtlas);
+  }
+
+  if (prefersAtlas) startAtlas();
+  else startVideo();
 
   return () => {
     stopped = true;
@@ -222,8 +300,11 @@ function playPortraitArrival(portrait, image, finish, startText, fallback) {
     controller.abort();
     cancelAnimationFrame(animationFrame);
     window.removeEventListener('resize', measure);
-    sheets.forEach(sheet => sheet.removeAttribute('src'));
-    surface.remove();
+    sheets.forEach(sheet => sheet?.removeAttribute('src'));
+    if (videoFrame !== undefined) video.cancelVideoFrameCallback(videoFrame);
+    video?.pause();
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    surface?.remove();
     if (shine) {
       shineIn?.cancel();
       shine.remove();
