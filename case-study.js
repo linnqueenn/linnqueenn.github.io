@@ -176,11 +176,13 @@ function setupCaseLightbox(root) {
   const image = figure.querySelector('img');
   const caption = figure.querySelector('figcaption');
   let trigger;
+  let pageScroll;
 
   root.addEventListener('click', event => {
     const button = event.target.closest('[data-case-image]');
     if (!button) return;
     trigger = button;
+    pageScroll = {left: window.scrollX, top: window.scrollY};
     image.alt = caption.textContent = button.querySelector('img').alt;
     image.src = button.dataset.caseImage;
     dialog.showModal();
@@ -191,6 +193,9 @@ function setupCaseLightbox(root) {
   dialog.addEventListener('close', () => {
     image.removeAttribute('src');
     trigger?.focus({preventScroll: true});
+    if (pageScroll && (window.scrollX !== pageScroll.left || window.scrollY !== pageScroll.top)) {
+      window.scrollTo({...pageScroll, behavior: 'instant'});
+    }
   });
 }
 
