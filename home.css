@@ -62,11 +62,11 @@
   inset: 0;
   pointer-events: none;
   background: linear-gradient(145deg, transparent 43%, rgb(255 250 235 / .27) 50%, transparent 57%) center / 100% 300% no-repeat;
-  mask: url("assets/home/portrait.png") center / 100% 100% no-repeat;
+  mask: url("assets/home/portrait-still.webp") center / 100% 100% no-repeat;
 }
 .home-portrait-shine-video {
   mask:
-    url("assets/home/portrait.png") center / 100% 100% no-repeat,
+    url("assets/home/portrait-still.webp") center / 100% 100% no-repeat,
     var(--shine-video-mask) var(--shine-video-left) var(--shine-video-top) / var(--shine-video-width) var(--shine-video-height) no-repeat;
   mask-composite: intersect;
 }
@@ -108,7 +108,7 @@
     position: absolute;
     inset: 0;
     background: #fff;
-    mask: url("assets/home/portrait.png") center / 100% 100% no-repeat;
+    mask: url("assets/home/portrait-still.webp") center / 100% 100% no-repeat;
     pointer-events: none;
     animation: home-portrait-lock 175ms ease-in-out both;
   }
@@ -159,7 +159,7 @@
       transparent 75% 83%, #b6f33c84 91%, transparent 100%) no-repeat;
     background-size: 100% 9%;
     background-position: center calc(var(--portrait-scan) - 3%);
-    mask: url("assets/home/portrait.png") center / 100% 100% no-repeat;
+    mask: url("assets/home/portrait-still.webp") center / 100% 100% no-repeat;
     animation: home-portrait-bands 1.5s both;
   }
 

@@ -64,12 +64,18 @@ function renderHome() {
   setupProjectsScreen(t, caseUrl);
   setupRemainingSections();
   document.querySelector('#home-language').onclick = language.onclick;
-  setupPortraitArrival(setupHomeScramble());
+  const loadCrystal = () => import('./crystal.js?v=20261128-tablet-fit').catch(error => console.warn('3D crystal unavailable', error));
+  const startText = setupHomeScramble();
+  const queueCrystal = () => {
+    if ('requestIdleCallback' in window) requestIdleCallback(loadCrystal, {timeout: 1400});
+    else setTimeout(loadCrystal, 500);
+  };
+  if (location.hash) queueCrystal();
+  setupPortraitArrival(remaining => {
+    if (startText(remaining) && !location.hash) queueCrystal();
+  });
   setupAboutScreen();
   setupMotion();
-  const loadCrystal = () => import('./crystal.js?v=20261128-tablet-fit').catch(error => console.warn('3D crystal unavailable', error));
-  if ('requestIdleCallback' in window) requestIdleCallback(loadCrystal, {timeout: 1400});
-  else setTimeout(loadCrystal, 500);
 }
 
 function setupMotion() {
