@@ -67,8 +67,10 @@ function remainingSections(t) {
     <section id="pricing" class="remaining-section" aria-labelledby="pricing-title">
       <div class="pricing-top">${heading('pricing', 2)}
       <p class="remaining-note">${pricingNote}</p></div>
-      <dl class="rate-list">${copy.prices.map(([ru, english, amount]) => `
-        <div class="rate-slot scroll-window-slot"><div class="rate-row scroll-window"><dt>${rateLabel([ru, english])}</dt><dd>${amount ? `<span class="rate-prefix">${t('от ','from ')}</span><span class="rate-amount">${amount.replace(' ', ' ')} ₽</span>` : t('по запросу','on request')}</dd></div></div>`).join('')}</dl>
+      <dl class="rate-list">${copy.prices.map(([ru, english, priceRu, priceEn]) => {
+        const amount = t(priceRu, priceEn);
+        return `<div class="rate-slot scroll-window-slot"><div class="rate-row scroll-window"><dt>${rateLabel([ru, english])}</dt><dd>${amount ? `<span class="rate-prefix">${t('от ','from ')}</span><span class="rate-amount">${amount.replaceAll(' ', ' ')}</span>` : t('по запросу','on request')}</dd></div></div>`;
+      }).join('')}</dl>
       <div class="pricing-bottom">
       ${remainingAction(tr(copy.discuss), 'https://t.me/linqueenn', {pricing: true})}
       </div>

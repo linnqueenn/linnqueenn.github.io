@@ -78,32 +78,36 @@ const remainingContent = {
     [
       "Лендинг под ключ",
       "Landing page, design and build",
-      "40 000"
+      "40 000 ₽",
+      "$500"
     ],
     [
       "Многостраничный сайт",
       "Multi-page website",
-      "60 000"
+      "50 000 ₽",
+      "$650"
     ],
     [
       "UX/UI-дизайн",
       "UX/UI design",
-      "40 000"
+      "40 000 ₽",
+      "$600"
     ],
     [
       "Айдентика",
       "Brand identity",
-      "20 000"
+      "20 000 ₽",
+      "$300"
     ],
     [
       "Графический дизайн",
       "Graphic design",
-      "2 000"
+      "2 000 ₽",
+      "$30"
     ],
     [
       "Комплексный digital-проект",
-      "End-to-end digital project",
-      ""
+      "End-to-end digital project"
     ]
   ]
 };
